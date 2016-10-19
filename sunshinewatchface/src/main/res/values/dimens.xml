@@ -12,4 +12,12 @@
   <dimen name="digital_date_text_size">14dp</dimen>
   <dimen name="digital_date_text_size_round">16dp</dimen>
 
+  <dimen name="divider_y_offset">130dp</dimen>
+  <dimen name="divider_x_offset">75dp</dimen>
+  <dimen name="divider_x_offset_round">85dp</dimen>
+  <dimen name="divider_width">40dp</dimen>
+  <dimen name="divider_width_round">40dp</dimen>
+  <dimen name="divider_height">1dp</dimen>
+
+
 </resources>

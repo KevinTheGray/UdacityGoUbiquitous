@@ -90,6 +90,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     float mYOffset;
     float mDateXOffset;
     float mDateYOffset;
+    float mDividerXOffset;
+    float mDividerYOffset;
+    float mDividerWidth;
+    float mDividerHeight;
 
     /**
      * Whether the display supports fewer bits for each color in ambient mode. When true, we
@@ -109,6 +113,8 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
       Resources resources = SunshineWatchFace.this.getResources();
       mYOffset = resources.getDimension(R.dimen.digital_y_offset);
       mDateYOffset = resources.getDimension(R.dimen.date_y_offset);
+      mDividerYOffset = resources.getDimension(R.dimen.divider_y_offset);
+      mDividerHeight = resources.getDimension(R.dimen.divider_height);
 
       mBackgroundPaint = new Paint();
       mBackgroundPaint.setColor(resources.getColor(R.color.background));
@@ -187,17 +193,26 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
       // Load resources that have alternate values for round watches.
       Resources resources = SunshineWatchFace.this.getResources();
       boolean isRound = insets.isRound();
-      mXOffset = resources.getDimension(isRound
-        ? R.dimen.digital_x_offset_round : R.dimen.digital_x_offset);
-      mDateXOffset = resources.getDimension(isRound
-        ? R.dimen.date_x_offset_round : R.dimen.date_x_offset);
-      float textSize = resources.getDimension(isRound
-        ? R.dimen.digital_text_size_round : R.dimen.digital_text_size);
-      float textDateSize = resources.getDimension(isRound
-        ? R.dimen.digital_date_text_size_round : R.dimen.digital_date_text_size);
+      float textSize;
+      float dateTextSize;
+      if (isRound) {
+        mXOffset = resources.getDimension(R.dimen.digital_x_offset_round);
+        textSize = resources.getDimension(R.dimen.digital_text_size_round);
+        mDateXOffset = resources.getDimension(R.dimen.date_x_offset_round);
+        dateTextSize = resources.getDimension(R.dimen.digital_date_text_size_round);
+        mDividerXOffset = resources.getDimension(R.dimen.divider_x_offset_round);
+        mDividerWidth = resources.getDimension(R.dimen.divider_width_round);
+      } else {
+        mXOffset = resources.getDimension(R.dimen.digital_x_offset);
+        textSize = resources.getDimension(R.dimen.digital_text_size);
+        mDateXOffset = resources.getDimension(R.dimen.date_x_offset);
+        dateTextSize = resources.getDimension(R.dimen.digital_date_text_size);
+        mDividerXOffset = resources.getDimension(R.dimen.divider_x_offset);
+        mDividerWidth = resources.getDimension(R.dimen.divider_width);
+      }
 
       mTextPaint.setTextSize(textSize);
-      mFullDateTextPaint.setTextSize(textDateSize);
+      mFullDateTextPaint.setTextSize(dateTextSize);
     }
 
     @Override
@@ -247,8 +262,10 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
       long dateTimeMillis = System.currentTimeMillis();
       SimpleDateFormat sdf = new SimpleDateFormat("EEE, MMM dd yyyy", getResources().getConfiguration().locale);
       String formattedDate = sdf.format(new Date(dateTimeMillis)).toUpperCase();
-
       canvas.drawText(formattedDate, mDateXOffset, mDateYOffset, mFullDateTextPaint);
+
+      canvas.drawRect(mDividerXOffset, mDividerYOffset, mDividerXOffset + mDividerWidth,
+        mDividerYOffset+ mDividerHeight, mFullDateTextPaint);
     }
 
     /**
