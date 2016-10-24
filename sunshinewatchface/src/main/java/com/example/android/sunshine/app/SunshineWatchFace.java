@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.android.sunshinewatchface;
+package com.example.android.sunshine.app;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,7 +32,6 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
-import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.WindowInsets;
 
@@ -336,7 +335,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     @Override
     public void onConnected(Bundle bundle) {
       mResolvingError = false;
-      mConnected = true;
+      //mConnected = true;
       Wearable.DataApi.addListener(mGoogleApiClient, this);
 
     }
@@ -360,8 +359,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
-      Log.d("Yeah!", "WAH!");
-      mConnected = false;
+      mConnected = true;
     }
   }
 

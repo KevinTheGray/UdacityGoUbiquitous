@@ -18,7 +18,6 @@ package com.example.android.sunshine.app;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.database.Cursor;
@@ -26,7 +25,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
@@ -49,26 +47,13 @@ import android.widget.TextView;
 
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.DataEventBuffer;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
-import com.google.android.gms.wearable.Wearable;
-
-import java.util.Date;
 
 /**
  * Encapsulates fetching the forecast and displaying it as a {@link android.support.v7.widget.RecyclerView} layout.
  */
 public class ForecastFragment extends Fragment
   implements LoaderManager.LoaderCallbacks<Cursor>,
-  SharedPreferences.OnSharedPreferenceChangeListener,
-  GoogleApiClient.ConnectionCallbacks,
-  DataApi.DataListener,
-  GoogleApiClient.OnConnectionFailedListener {
+  SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static final String LOG_TAG = ForecastFragment.class.getSimpleName();
     //Request code for launching the Intent to resolve Google Play services errors.
@@ -79,8 +64,6 @@ public class ForecastFragment extends Fragment
     private int mChoiceMode;
     private boolean mHoldForTransition;
     private long mInitialSelectedDate = -1;
-    private GoogleApiClient mGoogleApiClient;
-    private boolean mResolvingError = false;
 
     private static final String SELECTED_KEY = "selected_position";
 
@@ -281,46 +264,22 @@ public class ForecastFragment extends Fragment
             getActivity().supportPostponeEnterTransition();
         }
         getLoaderManager().initLoader(FORECAST_LOADER, null, this);
-        mGoogleApiClient = new GoogleApiClient.Builder(this.getActivity())
-          .addApi(Wearable.API)
-          .addConnectionCallbacks(this)
-          .addOnConnectionFailedListener(this)
-          .build();
         super.onActivityCreated(savedInstanceState);
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        if (!mResolvingError) {
-            mGoogleApiClient.connect();
-        }
     }
 
     @Override
     public void onStop() {
-        if (!mResolvingError && (mGoogleApiClient != null) && (mGoogleApiClient.isConnected())) {
-            Wearable.DataApi.removeListener(mGoogleApiClient, this);
-            mGoogleApiClient.disconnect();
-        }
         super.onStop();
     }
 
     // since we read the location when we create the loader, all we need to do is restart things
     void onLocationChanged() {
         getLoaderManager().restartLoader(FORECAST_LOADER, null, this);
-
-        PutDataMapRequest dataMap = PutDataMapRequest.create("/lol");
-        dataMap.getDataMap().putLong("time", new Date().getTime());
-        PutDataRequest request = dataMap.asPutDataRequest();
-        request.setUrgent();
-
-        Wearable.DataApi.putDataItem(mGoogleApiClient, request)
-          .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-              @Override
-              public void onResult(DataApi.DataItemResult dataItemResult) {
-              }
-          });
     }
 
     private void openPreferredLocationInMap() {
@@ -491,37 +450,4 @@ public class ForecastFragment extends Fragment
         }
     }
 
-    @Override
-    public void onConnected(Bundle bundle) {
-        mResolvingError = false;
-        Wearable.DataApi.addListener(mGoogleApiClient, this);
-
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult result) {
-        if (!mResolvingError) {
-            if (result.hasResolution()) {
-                try {
-                    mResolvingError = true;
-                    result.startResolutionForResult(getActivity(), REQUEST_RESOLVE_ERROR);
-                } catch (IntentSender.SendIntentException e) {
-                    // There was an error with the resolution intent. Try again.
-                    mGoogleApiClient.connect();
-                }
-            } else {
-                mResolvingError = false;
-                Wearable.DataApi.removeListener(mGoogleApiClient, this);
-            }
-        }
-    }
-
-    @Override
-    public void onDataChanged(DataEventBuffer dataEventBuffer) {
-        Log.d("Yeah!", "WAH!");
-    }
 }
