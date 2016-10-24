@@ -24,6 +24,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.text.format.Time;
@@ -36,6 +37,11 @@ import com.example.android.sunshine.app.R;
 import com.example.android.sunshine.app.Utility;
 import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.PutDataMapRequest;
+import com.google.android.gms.wearable.PutDataRequest;
+import com.google.android.gms.wearable.Wearable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -369,6 +375,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 updateWidgets();
                 updateMuzei();
                 notifyWeather();
+                notifyWearable();
             }
             Log.d(LOG_TAG, "Sync Complete. " + cVVector.size() + " Inserted");
             setLocationStatus(getContext(), LOCATION_STATUS_OK);
@@ -502,6 +509,37 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
                 }
                 cursor.close();
             }
+        }
+    }
+
+
+    private void notifyWearable() {
+        String locationQuery = Utility.getPreferredLocation(getContext());
+        Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
+        Cursor cursor = getContext().getContentResolver().query(weatherUri, NOTIFY_WEATHER_PROJECTION, null, null, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int weatherId = cursor.getInt(INDEX_WEATHER_ID);
+            double highTemp = cursor.getDouble(INDEX_MAX_TEMP);
+            double lowTemp = cursor.getDouble(INDEX_MIN_TEMP);
+
+            PutDataMapRequest dataMap = PutDataMapRequest.create("/weather_update");
+            dataMap.getDataMap().putString("high_temp", Utility.formatTemperature(getContext(), highTemp));
+            dataMap.getDataMap().putString("low_temp", Utility.formatTemperature(getContext(), lowTemp));
+            dataMap.getDataMap().putLong("weather_id", weatherId);
+            PutDataRequest request = dataMap.asPutDataRequest();
+
+            Wearable.DataApi.putDataItem(MainActivity.mGoogleApiClient, request)
+              .setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                  @Override
+                  public void onResult(@NonNull DataApi.DataItemResult result) {
+                      if (result.getStatus().isSuccess()) {
+                        Log.d(LOG_TAG, "woo hoo :D");
+                      } else {
+                          Log.d(LOG_TAG, "boo hoo :(");
+                      }
+                  }
+              });
         }
     }
 

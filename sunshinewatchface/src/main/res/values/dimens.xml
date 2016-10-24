@@ -19,5 +19,17 @@
   <dimen name="divider_width_round">40dp</dimen>
   <dimen name="divider_height">1dp</dimen>
 
+  <dimen name="weather_icon_y_offset">140dp</dimen>
+  <dimen name="weather_icon_x_offset">30dp</dimen>
+  <dimen name="weather_icon_x_offset_round">30dp</dimen>
+
+  <dimen name="temp_text_size">26dp</dimen>
+  <dimen name="temp_text_size_round">28dp</dimen>
+  <dimen name="temp_y_offset">172dp</dimen>
+  <dimen name="temp_high_x_offset">70dp</dimen>
+  <dimen name="temp_high_x_offset_round">80dp</dimen>
+  <dimen name="temp_low_x_offset">130dp</dimen>
+  <dimen name="temp_low_x_offset_round">140dp</dimen>
+
 
 </resources>
