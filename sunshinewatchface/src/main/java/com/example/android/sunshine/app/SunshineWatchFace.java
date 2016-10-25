@@ -20,6 +20,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -40,7 +41,11 @@ import android.view.WindowInsets;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataItem;
+import com.google.android.gms.wearable.DataMap;
+import com.google.android.gms.wearable.DataMapItem;
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
@@ -84,13 +89,19 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
     boolean mRegisteredTimeZoneReceiver = false;
     private GoogleApiClient mGoogleApiClient;
     private boolean mResolvingError = false;
-    private boolean mConnected = false;
     private static final int REQUEST_RESOLVE_ERROR = 1000;
+    private static final String PREFERENCES_KEY = "preferences";
+    private static final String PREF_TEMP_HIGH = "pref_temp_high";
+    private static final String PREF_TEMP_LOW = "pref_temp_low";
+    private static final String PREF_WEATHER_ICON_ID = "pref_weather_icon_id";
 
     Paint mBackgroundPaint;
     Paint mBackgroundDebugPaint;
     Paint mWeatherIconPaint;
     private Bitmap mWeatherIconBitmap;
+    private long mWeatherIconCode;
+    private String mHighTempString = "";
+    private String mLowTempString = "";
     Paint mTextPaint;
     Paint mFullDateTextPaint;
     Paint mHighTempTextPaint;
@@ -134,6 +145,11 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
         .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
         .setShowSystemUiTime(false)
         .build());
+
+      SharedPreferences preferences = getSharedPreferences(PREFERENCES_KEY, MODE_PRIVATE);
+      mLowTempString = preferences.getString(PREF_TEMP_LOW, "");
+      mHighTempString = preferences.getString(PREF_TEMP_HIGH, "");
+      mWeatherIconCode = preferences.getLong(PREF_WEATHER_ICON_ID, 0);
 
       mGoogleApiClient = new GoogleApiClient.Builder(SunshineWatchFace.this)
         .addApi(Wearable.API)
@@ -308,11 +324,7 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
       if (isInAmbientMode()) {
         canvas.drawColor(Color.BLACK);
       } else {
-        if (mConnected) {
-          canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
-        } else {
-          canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundDebugPaint);
-        }
+        canvas.drawRect(0, 0, bounds.width(), bounds.height(), mBackgroundPaint);
       }
 
       long now = System.currentTimeMillis();
@@ -330,18 +342,48 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
       canvas.drawRect(mDividerXOffset, mDividerYOffset, mDividerXOffset + mDividerWidth,
         mDividerYOffset+ mDividerHeight, mFullDateTextPaint);
 
-      canvas.drawBitmap(mWeatherIconBitmap, mWeatherIconXOffest, mWeatherIconYOffset, mWeatherIconPaint);
+      if (mWeatherIconBitmap != null && !isInAmbientMode()) {
+        canvas.drawBitmap(mWeatherIconBitmap, mWeatherIconXOffest, mWeatherIconYOffset, mWeatherIconPaint);
+      }
 
       canvas.drawText(formattedDate, mDateXOffset, mDateYOffset, mFullDateTextPaint);
 
-      canvas.drawText("000", mHighTempXOffset, mTempYOffset, mHighTempTextPaint);
-      canvas.drawText("000", mLowTempXOffset, mTempYOffset, mLowTempTextPaint);
+      canvas.drawText(mHighTempString, mHighTempXOffset, mTempYOffset, mHighTempTextPaint);
+      canvas.drawText(mLowTempString, mLowTempXOffset, mTempYOffset, mLowTempTextPaint);
     }
 
     private Bitmap loadBitmapForWeatherID() {
-      Bitmap largeBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.art_clear);
-      return Bitmap.createScaledBitmap(largeBitmap, (int)(largeBitmap.getWidth() * 0.30f),
-        (int)(largeBitmap.getHeight() * 0.30f), false);
+
+      int weatherIconId = 0;
+      if (mWeatherIconCode >= 200 && mWeatherIconCode <= 232) {
+        weatherIconId = R.drawable.ic_storm;
+      } else if (mWeatherIconCode >= 300 && mWeatherIconCode <= 321) {
+        weatherIconId = R.drawable.ic_light_rain;
+      } else if (mWeatherIconCode >= 500 && mWeatherIconCode <= 504) {
+        weatherIconId = R.drawable.ic_rain;
+      } else if (mWeatherIconCode == 511) {
+        weatherIconId = R.drawable.ic_snow;
+      } else if (mWeatherIconCode >= 520 && mWeatherIconCode <= 531) {
+        weatherIconId = R.drawable.ic_rain;
+      } else if (mWeatherIconCode >= 600 && mWeatherIconCode <= 622) {
+        weatherIconId = R.drawable.ic_snow;
+      } else if (mWeatherIconCode >= 701 && mWeatherIconCode <= 761) {
+        weatherIconId = R.drawable.ic_fog;
+      } else if (mWeatherIconCode == 761 || mWeatherIconCode == 781) {
+        weatherIconId = R.drawable.ic_storm;
+      } else if (mWeatherIconCode == 800) {
+        weatherIconId = R.drawable.ic_clear;
+      } else if (mWeatherIconCode == 801) {
+        weatherIconId = R.drawable.ic_light_clouds;
+      } else if (mWeatherIconCode >= 802 && mWeatherIconCode <= 804) {
+        weatherIconId = R.drawable.ic_cloudy;
+      }
+      if (mWeatherIconCode != 0) {
+        Bitmap largeBitmap = BitmapFactory.decodeResource(getResources(), weatherIconId);
+        return Bitmap.createScaledBitmap(largeBitmap, (int) (largeBitmap.getWidth() * 0.70f),
+          (int) (largeBitmap.getHeight() * 0.70f), false);
+      }
+      return null;
     }
 
     /**
@@ -403,7 +445,23 @@ public class SunshineWatchFace extends CanvasWatchFaceService {
 
     @Override
     public void onDataChanged(DataEventBuffer dataEventBuffer) {
-      mConnected = true;
+      for (DataEvent event : dataEventBuffer) {
+        DataItem item = event.getDataItem();
+        if (item.getUri().getPath().equals("/weather_update")) {
+          DataMap dataMap = DataMapItem.fromDataItem(item).getDataMap();
+          mHighTempString = dataMap.getString("high_temp");
+          mLowTempString = dataMap.getString("low_temp");
+          mWeatherIconCode = dataMap.getLong("weather_id");
+          mWeatherIconBitmap = loadBitmapForWeatherID();
+
+          SharedPreferences preferences = getSharedPreferences(PREFERENCES_KEY, MODE_PRIVATE);
+          SharedPreferences.Editor editor = preferences.edit();
+          editor.putString(PREF_TEMP_LOW, mLowTempString);
+          editor.putString(PREF_TEMP_HIGH, mHighTempString);
+          editor.putLong(PREF_WEATHER_ICON_ID, mWeatherIconCode);
+          editor.apply();
+        }
+      }
     }
   }
 

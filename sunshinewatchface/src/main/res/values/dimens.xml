@@ -3,33 +3,33 @@
   <dimen name="digital_text_size">40dp</dimen>
   <dimen name="digital_text_size_round">45dp</dimen>
   <dimen name="digital_x_offset">40dp</dimen>
-  <dimen name="digital_x_offset_round">50dp</dimen>
-  <dimen name="digital_y_offset">80dp</dimen>
+  <dimen name="digital_x_offset_round">57dp</dimen>
+  <dimen name="digital_y_offset">70dp</dimen>
 
   <dimen name="date_y_offset">107dp</dimen>
-  <dimen name="date_x_offset">30dp</dimen>
-  <dimen name="date_x_offset_round">40dp</dimen>
+  <dimen name="date_x_offset">32dp</dimen>
+  <dimen name="date_x_offset_round">47dp</dimen>
   <dimen name="digital_date_text_size">14dp</dimen>
   <dimen name="digital_date_text_size_round">16dp</dimen>
 
   <dimen name="divider_y_offset">130dp</dimen>
-  <dimen name="divider_x_offset">75dp</dimen>
-  <dimen name="divider_x_offset_round">85dp</dimen>
+  <dimen name="divider_x_offset">70dp</dimen>
+  <dimen name="divider_x_offset_round">93dp</dimen>
   <dimen name="divider_width">40dp</dimen>
   <dimen name="divider_width_round">40dp</dimen>
   <dimen name="divider_height">1dp</dimen>
 
   <dimen name="weather_icon_y_offset">140dp</dimen>
-  <dimen name="weather_icon_x_offset">30dp</dimen>
-  <dimen name="weather_icon_x_offset_round">30dp</dimen>
+  <dimen name="weather_icon_x_offset">10dp</dimen>
+  <dimen name="weather_icon_x_offset_round">25dp</dimen>
 
   <dimen name="temp_text_size">26dp</dimen>
   <dimen name="temp_text_size_round">28dp</dimen>
   <dimen name="temp_y_offset">172dp</dimen>
   <dimen name="temp_high_x_offset">70dp</dimen>
-  <dimen name="temp_high_x_offset_round">80dp</dimen>
-  <dimen name="temp_low_x_offset">130dp</dimen>
-  <dimen name="temp_low_x_offset_round">140dp</dimen>
+  <dimen name="temp_high_x_offset_round">90dp</dimen>
+  <dimen name="temp_low_x_offset">125dp</dimen>
+  <dimen name="temp_low_x_offset_round">150dp</dimen>
 
 
 </resources>
